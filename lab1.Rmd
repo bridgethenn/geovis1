@@ -1,0 +1,87 @@
+---
+title: "EAS648 Lab 1"
+output: html_document
+date: "2025-10-23"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Lab 1 - Creating An R-Markdown File
+
+#### Loading Libraries
+
+```{r}
+library(ggplot2)
+library(sf)
+library(tidyverse)
+library(dplyr)
+```
+
+#### Pulling In Data
+```{r}
+boulder <- st_read("./BoulderSocialMedia/BoulderSocialMedia.shp")
+boulder
+```
+
+#### Data Clean-Up
+##### Transform Projection and Visualize
+```{r}
+boulder = st_transform(boulder, 26753) 
+ggplot() +
+    geom_sf(data =boulder,
+    fill = NA, alpha = .2) +
+    theme_bw()
+
+ggplot() +
+    geom_sf(data =boulder, aes(color=NatMrk_Dis),
+    fill = NA, alpha = .2) +
+    theme_bw()
+ggplot() +
+    geom_sf(data =boulder, aes(color=TrailH_Dis),
+    fill = NA, alpha = .2) +
+    theme_bw()
+
+frequency_table <- table(boulder$DB)
+print(frequency_table)
+```
+
+#### Data Analysis
+#####Create a Scatterplot of Variables of Interest
+```{r}
+boulder_sub <- boulder %>% filter(DB %in% c("Flickr", "Pano"))
+
+ggplot(boulder_sub, aes(x = NatMrk_Dis, y = TrailH_Dis, color = DB)) +
+  geom_point() +
+  facet_wrap(~ DB) +
+  labs(title = "Faceted Scatter Plot with Color by Group",
+       x = "Distance to Natural Landmark",
+       y = "Distance to Hiking Trail")
+
+```
+#####Create a Geovisualization
+```{r}
+
+
+```
+
+
+########################################################################
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
