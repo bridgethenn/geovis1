@@ -10,23 +10,28 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Lab 1 - Creating An R-Markdown File
 
-#### Loading Libraries
+#### Loading Libraries for Analysis
 
 ```{r}
 library(ggplot2)
 library(sf)
 library(tidyverse)
 library(dplyr)
+library(tmap)
+library(viridis)
+library(gridExtra)
 ```
 
 #### Pulling In Data
+###### The "boulder" dataset is a spatial point dateset of the Open Spaces and Mountain Parks of Boulder, CO. The variable "DB" is locations of where photos were taken with Flickr and Panramio. The dataset also includes variables related to distance, of which "TrailH_Dis" and "NatMrk_Dis" will be used in this analysis, representing the distance to trails and distance to natural landmarks, respectively. 
 ```{r}
 boulder <- st_read("./BoulderSocialMedia/BoulderSocialMedia.shp")
 boulder
 ```
 
 #### Data Clean-Up
-##### Transform Projection and Visualize
+##### Data Projection and Visualization
+###### In this code chunk, I transform the data projection and visualize the two distance variables of interest
 ```{r}
 boulder = st_transform(boulder, 26753) 
 ggplot() +
@@ -48,7 +53,8 @@ print(frequency_table)
 ```
 
 #### Data Analysis
-#####Create a Scatterplot of Variables of Interest
+##### Create a Scatterplot
+###### In this code chunk, I create a Scatterplot displaying where photos are taken along the two distance variables. This scatterplot shows that more photos are taken closer to walking trails and natural landmarks.
 ```{r}
 boulder_sub <- boulder %>% filter(DB %in% c("Flickr", "Pano"))
 
@@ -60,28 +66,40 @@ ggplot(boulder_sub, aes(x = NatMrk_Dis, y = TrailH_Dis, color = DB)) +
        y = "Distance to Hiking Trail")
 
 ```
-#####Create a Geovisualization
+
+##### Create a Geovisualization
+###### In this code chunk, I plot the distance variables next to each other to compare whether the natural landmarks are near hiking trails in these nature areas. Underneath, I plot the locations of photo-taking opportunities (in gray and white to not overwhelm the maps with colors) overlaid onto the distance variables to see where photos are taken in the park with the distance to trails and distance to landmarks in mind. The majority of photos are taken in close proximity to walking trails, perhaps as hikers do not want to leave the trails to take photos. There are also many natural landmarks that are close to trails, perhaps as these trails are designed to take hikers to these areas, making photo opportunities easier there. In the southwest corner of the Boulder location there seems to be a large area that is far from both natural landmarks and trails, where very few pictures are taken. 
 ```{r}
+p1 <- ggplot() +
+  geom_sf(data = boulder, aes(color = NatMrk_Dis), fill = NA, alpha = 0.2) +
+  scale_colour_gradientn(colors = viridis::magma(10), name = "NatMrk_Dis") +
+  labs(title = "Distance to Natural Landmarks") +
+  theme(legend.position = "right")
 
+p2 <- ggplot() +
+  geom_sf(data = boulder, aes(color = TrailH_Dis), fill = NA, alpha = 0.2) +
+  scale_colour_gradientn(colors = viridis::magma(10), name = "TrailH_Dis") +
+  labs(title = "Distance to Trails") +
+  theme(legend.position = "right")
 
+p3 <- ggplot() +
+  geom_sf(data = boulder, aes(color = NatMrk_Dis), fill = NA, alpha = 0.2) +
+  scale_colour_gradientn(colors = viridis::magma(10), name = "NatMrk_Dis") +
+  geom_sf(data = boulder_sub, aes(fill = DB), color = "black", shape = 21, size = 0.8) +
+  scale_fill_manual(values = c("Flickr" = "white", "Pano" = "gray"), name = "DB") +
+  labs(title = "Distance to Natural Landmarks with Photo Locations") +
+  theme(legend.position = "right")
+
+p4 <- ggplot() +
+  geom_sf(data = boulder, aes(color = TrailH_Dis), fill = NA, alpha = 0.2) +
+  scale_colour_gradientn(colors = viridis::magma(10), name = "TrailH_Dis") +
+  geom_sf(data = boulder_sub, aes(fill = DB), color = "black", shape = 21, size = 0.8) +
+  scale_fill_manual(values = c("Flickr" = "white", "Pano" = "gray"), name = "DB") +
+  labs(title = "Distance to Trails and Photo Locations") +
+  theme(legend.position = "right")
+
+gridExtra::grid.arrange(p1, p2, p3, p4, nrow = 2, ncol = 2)
 ```
 
-
-########################################################################
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+#### Response to Lab Question
+##### An open data science approach offers significant advantages in geography by enabling broader access. In this week’s reading by Rob Kitchin, Kitchin notes that open data science creates opportunities to leverage diverse sources, such as crowdsourced geographic information and volunteered data (e.g., OpenStreetMap), to help answer societal questions. This openness can democratize research, allowing scholars and non-experts to participate in data generation, interpretation, and critique. This ultimately expands the reach and impact of geographic scholarship. However, the approach also brings substantial challenges. Open data may contain sensitive information, raising privacy concerns and creating ethical considerations. For example, the article cites using social media data to analyze election campaigns. Use of such data raises questions about consent, and may cause misinterpretion of the outcomes. Therefore there are both benefits and consequences of using open source data, so critical reflection and ethical methodologies are necessary.
